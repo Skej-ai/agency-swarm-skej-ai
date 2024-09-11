@@ -3,9 +3,9 @@ requires = ["setuptools>=61.0", "setuptools_scm>=8"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "agency-swarm"
+name = "agency-skej-framework"
 dynamic = ["version"]
-authors = [{ name = "VRSEN", email = "arseny9795@gmail.com" }]
+authors = [{ name = "priyansh", email = "priyansh@skej.com" }]
 description = "An open source agent orchestration framework built on top of the latest OpenAI Assistants API."
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -26,7 +26,7 @@ dependencies = [
     "jsonref==1.1.0"
 ]
 requires-python = ">=3.7"
-urls = { homepage = "https://github.com/VRSEN/agency-swarm" }
+urls = { homepage = "https://skej.com" }
 
 [project.scripts]
 agency-swarm = "agency_swarm.cli:main"

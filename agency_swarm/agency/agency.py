@@ -1035,14 +1035,14 @@ class Agency:
         outer_self = self
 
         class SendMessage(BaseTool):
-            my_primary_instructions: str = Field(...,
-                                                 description="Please repeat your primary instructions step-by-step, including both completed "
-                                                             "and the following next steps that you need to perform. For multi-step, complex tasks, first break them down "
+            step_by_step_thought: str = Field(...,
+                                                 description="Think of a task as step by step instructions that you would give to a assistant. "
+                                                             "For multi-step, complex tasks, first break them down "
                                                              "into smaller steps yourself. Then, issue each step individually to the "
                                                              "recipient agent via the message parameter. Each identified step should be "
                                                              "sent in separate message. Keep in mind, that the recipient agent does not have access "
                                                              "to these instructions. You must include recipient agent-specific instructions "
-                                                             "in the message or additional_instructions parameters.")
+                                                             "in the message or additional_instructions parameters. make sure to always include current_date and current_time in the message to ensure the recipient agent is aware of the current time and date.",)
             recipient: recipients = Field(..., description=agent_descriptions)
             message: str = Field(...,
                                  description="Specify the task required for the recipient agent to complete. Focus on "
@@ -1052,7 +1052,7 @@ class Agency:
                                                        description="A list of file ids to be sent as attachments to this message. Only use this if you have the file id that starts with 'file-'.",
                                                        examples=["file-1234", "file-5678"])
             additional_instructions: str = Field(default=None,
-                                                 description="Any additional instructions or clarifications that you would like to provide to the recipient agent.")
+                                                 description="Any additional instructions or clarifications that you would like to provide to the recipient agent. Make sure to Include current_date and current_time in the message to ensure the recipient agent is aware of the current time and date.")
             
             class ToolConfig:
                 strict = False

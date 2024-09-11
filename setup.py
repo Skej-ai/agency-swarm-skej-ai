@@ -5,14 +5,14 @@ with open('requirements.txt') as f:
     requirements = f.read().splitlines()
 
 setup(
-    name='agency-swarm',
-    version='0.3.0',
-    author='VRSEN',
-    author_email='me@vrsen.ai',
+    name='agency-skej-framework',
+    version='0.0.1',
+    author='priyansh@skej.com',
+    author_email='priyansh@skej.com',
     description='An opensource agent orchestration framework built on top of the latest OpenAI Assistants API.',
     long_description=open('README.md', encoding='utf-8').read(),
     long_description_content_type='text/markdown',
-    url='https://github.com/VRSEN/agency-swarm',
+    url='https://skej.com/',
     packages=find_packages(exclude=['tests', 'tests.*']),
     install_requires=requirements,
     classifiers=[
