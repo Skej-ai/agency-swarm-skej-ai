@@ -1,7 +1,9 @@
 import asyncio
+import contextvars
 import inspect
 import json
 import os
+import threading
 import time
 from typing import List, Optional, Type, Union
 
@@ -9,6 +11,7 @@ from openai import APIError, BadRequestError
 from openai.types.beta import AssistantToolChoice
 from openai.types.beta.threads.message import Attachment
 from openai.types.beta.threads.run import TruncationStrategy
+from pygments.lexer import default
 
 from agency_swarm.tools import FileSearch, CodeInterpreter
 from agency_swarm.util.streaming import AgencyEventHandler
@@ -20,6 +23,9 @@ from agency_swarm.util.oai import get_openai_client
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import re
+
+
+thread_url_var = threading.local()
 
 class Thread:
     async_mode: str = None
@@ -114,6 +120,10 @@ class Thread:
 
         # Determine the sender's name based on the agent type
         sender_name = "user" if isinstance(self.agent, User) else self.agent.name
+
+        if not hasattr(thread_url_var, 'urls'):
+            thread_url_var.urls = []
+        thread_url_var.urls.append(self.thread_url)
         print(f'THREAD:[ {sender_name} -> {recipient_agent.name} ]: URL {self.thread_url}')
 
         # send message

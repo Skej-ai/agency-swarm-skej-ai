@@ -6,7 +6,7 @@ with open('requirements.txt') as f:
 
 setup(
     name='agency-skej-framework',
-    version='0.0.1',
+    version='0.0.5',
     author='priyansh@skej.com',
     author_email='priyansh@skej.com',
     description='An opensource agent orchestration framework built on top of the latest OpenAI Assistants API.',

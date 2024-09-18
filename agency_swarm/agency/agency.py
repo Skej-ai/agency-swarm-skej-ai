@@ -1035,25 +1035,33 @@ class Agency:
         outer_self = self
 
         class SendMessage(BaseTool):
-            step_by_step_thought: str = Field(...,
-                                                 description="Think of a task as step by step instructions that you would give to a assistant. "
-                                                             "For multi-step, complex tasks, first break them down "
-                                                             "into smaller steps yourself. Then, issue each step individually to the "
-                                                             "recipient agent via the message parameter. Each identified step should be "
-                                                             "sent in separate message. Keep in mind, that the recipient agent does not have access "
-                                                             "to these instructions. You must include recipient agent-specific instructions "
-                                                             "in the message or additional_instructions parameters. make sure to always include current_date and current_time in the message to ensure the recipient agent is aware of the current time and date.",)
+            step_by_step_thought: str = Field(
+                ...,
+                description="Break down tasks into step-by-step instructions to guide an assistant. For complex, multi-step tasks, identify and separate each step. Each step should be issued individually to the recipient agent via the message parameter. The recipient agent does not have access to these overall instructions, so specific instructions must be included in the message or additional_instructions parameters. Always include current_date and current_time in the message to ensure the recipient agent is aware of the current date and time.",
+            )
             recipient: recipients = Field(..., description=agent_descriptions)
-            message: str = Field(...,
-                                 description="Specify the task required for the recipient agent to complete. Focus on "
-                                             "clarifying what the task entails, rather than providing exact "
-                                             "instructions.")
-            message_files: Optional[List[str]] = Field(default=None,
-                                                       description="A list of file ids to be sent as attachments to this message. Only use this if you have the file id that starts with 'file-'.",
-                                                       examples=["file-1234", "file-5678"])
-            additional_instructions: str = Field(default=None,
-                                                 description="Any additional instructions or clarifications that you would like to provide to the recipient agent. Make sure to Include current_date and current_time in the message to ensure the recipient agent is aware of the current time and date.")
-            
+
+            instruction_to_recipient: str = Field(
+                ...,
+                description="Specify the task that the recipient agent needs to complete. Focus on clarifying the task's intent rather than providing exact step-by-step instructions. For example, 'Please book a meeting with Paul using default values.'",
+            )
+
+            message_files: Optional[List[str]] = Field(
+                default=None,
+                description="A list of file IDs to send as attachments with this message. Use this only if you have a file ID that starts with 'file-'.",
+                examples=["file-1234", "file-5678"],
+            )
+
+            additional_instructions: str = Field(
+                default=None,
+                description="Any extra instructions or clarifications for the recipient agent. Include current_date and current_time to ensure they are aware of the present time and date.",
+            )
+
+            exact_user_instructions_fragment: str = Field(
+                default=None,
+                description="The exact fragment of instructions provided by the user relevant to the task. For multi-step instructions, extract the specific part related to the current task. For example, if the user says, 'Book a meeting with Paul and also set up a 3 PM meeting with Justin,' this field could contain 'Book a meeting with Paul.'",
+            )
+
             class ToolConfig:
                 strict = False
                 one_call_at_a_time = outer_self.async_mode != 'threading'
@@ -1063,7 +1071,7 @@ class Agency:
                 if "file-" in self.message or (
                         self.additional_instructions and "file-" in self.additional_instructions):
                     if not self.message_files:
-                        raise ValueError("You must include file ids in message_files parameter.")
+                        raise ValueError("You must include file IDs in the message_files parameter.")
 
             @field_validator('recipient')
             def check_recipient(cls, value):
@@ -1074,17 +1082,27 @@ class Agency:
             def run(self):
                 thread = outer_self.agents_and_threads[self._caller_agent.name][self.recipient.value]
 
+                # Construct the message JSON object
+                message_json = json.dumps({
+                    "instruction_to_recipient": self.instruction_to_recipient,
+                    "exact_user_instructions_fragment": self.exact_user_instructions_fragment,
+                })
+
+
                 if not outer_self.async_mode == 'threading':
-                    message = thread.get_completion(message=self.message,
-                                                    message_files=self.message_files,
-                                                    event_handler=self._event_handler,
-                                                    yield_messages=not self._event_handler,
-                                                    additional_instructions=self.additional_instructions,
-                                                    )
+                    message = thread.get_completion(
+                        message=message_json,
+                        message_files=self.message_files,
+                        event_handler=self._event_handler,
+                        yield_messages=not self._event_handler,
+                        additional_instructions=self.additional_instructions,
+                    )
                 else:
-                    message = thread.get_completion_async(message=self.message,
-                                                          message_files=self.message_files,
-                                                          additional_instructions=self.additional_instructions)
+                    message = thread.get_completion_async(
+                        message=message_json,
+                        message_files=self.message_files,
+                        additional_instructions=self.additional_instructions,
+                    )
 
                 return message or ""
 
